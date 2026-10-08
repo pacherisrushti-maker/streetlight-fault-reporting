@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Streetlight Fault Reporting System | Belagavi City Corporation</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Digital civic platform for citizens of Belagavi, Karnataka to easily report faulty or non-working streetlights using photograph, GPS location, and short description.">
+  <meta name="keywords" content="Streetlight Fault, Belagavi Municipal Corporation, Civic Tech, Report Streetlight, Belagavi, VTU Project">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>">
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Leaflet GIS Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+  <!-- App Design System Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- React 18 & ReactDOM UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin=""></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin=""></script>
+
+  <!-- Babel Compiler for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin=""></script>
+
+  <!-- Leaflet GIS Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body>
+
+  <!-- Root Application Container -->
+  <div id="root"></div>
+
+  <!-- Inline Babel Script -->
+  <script type="text/babel">
+    // ==========================================
+    // 1. DEMONSTRATION SAMPLE DATA (BELAGAVI AREA)
+    // ==========================================
+    window.SEED_COMPLAINTS = [
+      {
+        complaint_id: "SL-2026-0001",
+        citizen_name: "Rahul Sharma",
+        citizen_contact: "rahul.sharma@example.com",
+        citizen_mobile: "9845123456",
+        photo_url: "assets/faulty_night.png",
+        latitude: 15.8365,
+        longitude: 74.5098,
+        address: "Deshmukh High School Road, Tilakwadi, Belagavi, Karnataka 590006",
+        problem_type: "Streetlight not working",
+        description: "Main streetlight opposite Deshmukh High School is completely out since 2 days. The street is extremely dark at night creating safety hazard.",
+        date_reported: "2026-10-06 19:30",
+        status: "Submitted",
+        assigned_officer: "Unassigned",
+        admin_remarks: "Complaint logged via mobile web app. Awaiting ward supervisor inspection.",
+        resolved_date: null,
+        ward: "Ward 14 - Tilakwadi"
+      },
+      {
+        complaint_id: "SL-2026-0002",
+        citizen_name: "Priya Kulkarni",
+        citizen_contact: "priya.kulkarni@example.com",
+        citizen_mobile: "9480112233",
+        photo_url: "assets/faulty_night.png",
+        latitude: 15.8521,
+        longitude: 74.5123,
+        address: "Khanapur Road, Opposite Cantonment Board, Camp, Belagavi, Karnataka 590001",
+        problem_type: "Light flickering",
+        description: "Sodium vapor lamp flickers rapidly continuous throughout the night. Causes severe glare for passing traffic.",
+        date_reported: "2026-10-05 20:15",
+        status: "In Progress",
+        assigned_officer: "Er. Suresh Patil (Electrical Wing)",
+        admin_remarks: "Technician team dispatched with hydraulic ladder truck to inspect choke and igniter.",
+        resolved_date: null,
+        ward: "Ward 08 - Cantonment / Camp"
+      },
+      {
+        complaint_id: "SL-2026-0003",
+        citizen_name: "Anand Hegde",
+        citizen_contact: "anand.hegde@example.com",
+        citizen_mobile: "9731223344",
+        photo_url: "assets/damaged_pole.png",
+        latitude: 15.8389,
+        longitude: 74.5190,
+        address: "Shahapur Main Market Road, Near Vegetable Yard, Belagavi, Karnataka 590003",
+        problem_type: "Damaged streetlight",
+        description: "Metal pole arm bent down due to heavy rain branch fall. Casing fixture hanging dangerously above sidewalk.",
+        date_reported: "2026-10-04 11:45",
+        status: "Resolved",
+        assigned_officer: "Er. Rajesh Shinde (Shahapur Division)",
+        admin_remarks: "Damaged pole arm safely removed and replaced with new heavy-duty bracket & 45W energy-efficient LED lamp.",
+        resolved_date: "2026-10-06 16:00",
+        ward: "Ward 22 - Shahapur"
+      },
+      {
+        complaint_id: "SL-2026-0004",
+        citizen_name: "Mahesh Patil",
+        citizen_contact: "mahesh.p@example.com",
+        citizen_mobile: "9611556677",
+        photo_url: "assets/damaged_pole.png",
+        latitude: 15.8712,
+        longitude: 74.5345,
+        address: "APMC Main Gate Road, Auto Nagar Industrial Area, Belagavi, Karnataka 590016",
+        problem_type: "Pole damaged",
+        description: "Base junction cover stolen and wires exposed. Potential shock risk during monsoon.",
+        date_reported: "2026-10-07 09:10",
+        status: "Under Review",
+        assigned_officer: "Er. Ankit Kulkarni",
+        admin_remarks: "Priority ticket raised for safety insulation box replacement.",
+        resolved_date: null,
+        ward: "Ward 04 - APMC / Auto Nagar"
+      },
+      {
+        complaint_id: "SL-2026-0005",
+        citizen_name: "Savita Kamat",
+        citizen_contact: "savita.k@example.com",
+        citizen_mobile: "9880998877",
+        photo_url: "assets/resolved_light.png",
+        latitude: 15.8601,
+        longitude: 74.4850,
+        address: "Hindalga Road, Near Central Jail Circle, Belagavi, Karnataka 590008",
+        problem_type: "Streetlight not working",
+        description: "3 consecutive street poles dark on the stretch leading to Hindalga bypass.",
+        date_reported: "2026-10-06 21:00",
+        status: "Assigned",
+        assigned_officer: "Er. Ankit Kulkarni",
+        admin_remarks: "Assigned to Ward 02 maintenance team.",
+        resolved_date: null,
+        ward: "Ward 02 - Hindalga"
+      },
+      {
+        complaint_id: "SL-2026-0006",
+        citizen_name: "Vijay Naik",
+        citizen_contact: "v.naik@example.com",
+        citizen_mobile: "9448332211",
+        photo_url: "assets/resolved_light.png",
+        latitude: 15.8150,
+        longitude: 74.4920,
+        address: "VTU Campus Main Gate Road, Machhe, Belagavi, Karnataka 590018",
+        problem_type: "Streetlight not working",
+        description: "Campus approach road pole light fixture non-functional.",
+        date_reported: "2026-10-03 18:20",
+        status: "Resolved",
+        assigned_officer: "Er. Suresh Patil",
+        admin_remarks: "Replaced burnt capacitor and restored power feed.",
+        resolved_date: "2026-10-04 14:30",
+        ward: "Ward 30 - Machhe / VTU"
+      }
+    ];
+
+    window.OFFICERS_LIST = [
+      "Er. Suresh Patil (Tilakwadi/Camp Ward)",
+      "Er. Rajesh Shinde (Shahapur Division)",
+      "Er. Ankit Kulkarni (APMC/Hindalga Division)",
+      "Er. Vinayak Bhat (Vadgaon Ward)",
+      "Er. Santosh Joshi (Khade Bazar Division)"
+    ];
+
+    function createGoogleMapLayers() {
+      const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps Satellite Imagery'
+      });
+
+      const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps Satellite'
+      });
+
+      const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps Streets'
+      });
+
+      const esriStreets = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: '&copy; Esri World Street Map'
+      });
+
+      return {
+        defaultLayer: googleHybrid,
+        baseMaps: {
+          "🛰️ Google Satellite (Hybrid + Roads)": googleHybrid,
+          "📡 Google Satellite (Pure Imagery)": googleSatellite,
+          "🗺️ Google Streets": googleStreets,
+          "🌍 Esri High-Res Map": esriStreets
+        }
+      };
+    }
+
+    // ==========================================
+    // 2. API SERVICE & STORAGE
+    // ==========================================
+    const STORAGE_KEY_COMPLAINTS = "BGM_STREETLIGHT_COMPLAINTS_V1";
+    const STORAGE_KEY_USER = "BGM_CURRENT_USER_V1";
+    const STORAGE_KEY_OFFICERS = "BGM_OFFICERS_LIST_V1";
+
+    function initDatabase() {
+      try {
+        const existing = localStorage.getItem(STORAGE_KEY_COMPLAINTS);
+        if (!existing) {
+          localStorage.setItem(STORAGE_KEY_COMPLAINTS, JSON.stringify(window.SEED_COMPLAINTS));
+        }
+        const existingOfficers = localStorage.getItem(STORAGE_KEY_OFFICERS);
+        if (!existingOfficers) {
+          localStorage.setItem(STORAGE_KEY_OFFICERS, JSON.stringify(window.OFFICERS_LIST));
+        }
+      } catch (e) {}
+    }
+    initDatabase();
+
+    window.ApiService = {
+      getComplaints: function () {
+        initDatabase();
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_COMPLAINTS);
+          return JSON.parse(raw) || window.SEED_COMPLAINTS;
+        } catch (e) {
+          return window.SEED_COMPLAINTS;
+        }
+      },
+
+      getOfficers: function () {
+        initDatabase();
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_OFFICERS);
+          return JSON.parse(raw) || window.OFFICERS_LIST;
+        } catch (e) {
+          return window.OFFICERS_LIST;
+        }
+      },
+
+      addOfficer: function (officerName) {
+        const list = this.getOfficers();
+        if (officerName && !list.includes(officerName)) {
+          list.push(officerName);
+          localStorage.setItem(STORAGE_KEY_OFFICERS, JSON.stringify(list));
+        }
+        return list;
+      },
+
+      saveComplaints: function (list) {
+        try {
+          localStorage.setItem(STORAGE_KEY_COMPLAINTS, JSON.stringify(list));
+        } catch (e) {}
+      },
+
+      getComplaintById: function (id) {
+        if (!id) return null;
+        const list = this.getComplaints();
+        const cleanId = id.trim().toUpperCase();
+        return list.find(c => c.complaint_id.toUpperCase() === cleanId) || null;
+      },
+
+      getComplaintsByUser: function (userContact) {
+        const list = this.getComplaints();
+        if (!userContact) return list;
+        return list.filter(c => 
+          (c.citizen_contact && c.citizen_contact.toLowerCase() === userContact.toLowerCase()) ||
+          (c.citizen_mobile && c.citizen_mobile === userContact)
+        );
+      },
+
+      createComplaint: function (data) {
+        const list = this.getComplaints();
+        const currentYear = new Date().getFullYear();
+        const seqNumber = String(list.length + 1).padStart(4, "0");
+        const newId = `SL-${currentYear}-${seqNumber}`;
+
+        const now = new Date();
+        const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+        const newRecord = {
+          complaint_id: newId,
+          citizen_name: data.citizen_name || "Anonymous Citizen",
+          citizen_contact: data.citizen_contact || "citizen@belagavi.gov.in",
+          citizen_mobile: data.citizen_mobile || "9845123456",
+          streetlight_id: data.streetlight_id || null,
+          photo_url: data.photo_url || "assets/faulty_night.png",
+          latitude: parseFloat(data.latitude) || 15.8497,
+          longitude: parseFloat(data.longitude) || 74.4977,
+          address: data.address || "Belagavi, Karnataka",
+          problem_type: data.problem_type || "Streetlight not working",
+          description: data.description || "Reported via civic fault app.",
+          date_reported: formattedDate,
+          status: "Submitted",
+          assigned_officer: "Unassigned",
+          admin_remarks: "Complaint logged successfully into Belagavi City Corporation database.",
+          resolved_date: null,
+          ward: data.ward || "Belagavi Municipal Area"
+        };
+
+        list.unshift(newRecord);
+        this.saveComplaints(list);
+        return newRecord;
+      },
+
+      updateComplaint: function (id, updateData) {
+        const list = this.getComplaints();
+        const index = list.findIndex(c => c.complaint_id.toUpperCase() === id.toUpperCase());
+        if (index === -1) return null;
+
+        const record = list[index];
+        if (updateData.status) record.status = updateData.status;
+        if (updateData.assigned_officer) record.assigned_officer = updateData.assigned_officer;
+        if (updateData.admin_remarks !== undefined) record.admin_remarks = updateData.admin_remarks;
+
+        if (updateData.status === "Resolved" && !record.resolved_date) {
+          const now = new Date();
+          record.resolved_date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        }
+
+        list[index] = record;
+        this.saveComplaints(list);
+        return record;
+      },
+
+      getCurrentUser: function () {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_USER);
+          if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return { name: "Rahul Sharma", email: "citizen@belagavi.gov.in", mobile: "9845123456", role: "citizen" };
+      },
+
+      setCurrentUser: function (user) {
+        try {
+          localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+        } catch (e) {}
+      },
+
+      logout: function () {
+        try {
+          localStorage.removeItem(STORAGE_KEY_USER);
+        } catch (e) {}
+      },
+
+      reverseGeocode: function (lat, lng, callback) {
+        const fallbackAddress = () => {
+          let area = "Belagavi Central";
+          if (lat < 15.84) area = "Tilakwadi / Shahapur Area, Belagavi, Karnataka 590006";
+          else if (lat > 15.86) area = "APMC / Auto Nagar Sector, Belagavi, Karnataka 590016";
+          else if (lng > 74.51) area = "Khanapur Road, Camp Area, Belagavi, Karnataka 590001";
+          else if (lng < 74.50) area = "Hindalga / Mandoli Bypass Road, Belagavi, Karnataka 590008";
+          callback({ address: `${area} (${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E)` });
+        };
+
+        try {
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.display_name) {
+                const parts = data.display_name.split(',');
+                const cleanAddress = parts.slice(0, 4).join(',').trim();
+                callback({ address: `${cleanAddress} (${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E)` });
+              } else {
+                fallbackAddress();
+              }
+            })
+            .catch(() => fallbackAddress());
+        } catch (err) {
+          fallbackAddress();
+        }
+      },
+
+      searchAddress: function (query, callback) {
+        if (!query) return;
+        const searchQuery = query.toLowerCase().includes("belagavi") || query.toLowerCase().includes("belgaum") 
+          ? query 
+          : `${query}, Belagavi, Karnataka`;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.length > 0) {
+              const bestMatch = data[0];
+              callback({
+                lat: parseFloat(bestMatch.lat),
+                lng: parseFloat(bestMatch.lon),
+                displayName: bestMatch.display_name
+              });
+            } else {
+              callback(null);
+            }
+          })
+          .catch(err => callback(null));
+      }
+    };
+
+    // ==========================================
+    // 3. REACT COMPONENTS
+    // ==========================================
+
+    // Navbar
+    const Navbar = ({ activeTab, setActiveTab, currentUser, setCurrentUser, openAcademicDoc }) => (
+      <header className="civic-navbar">
+        <div className="top-civic-bar">
+          <div>
+            <span>🏛️ Belagavi City Corporation • Public Lighting Division</span>
+            <span style={{ marginLeft: '12px', opacity: 0.75 }}>| VTU Academic Engineering Project</span>
+          </div>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <span style={{ color: '#FBBF24', fontSize: '0.75rem', fontWeight: 600 }}>
+              ⚡ Live Emergency Helpline: 0831-2405000
+            </span>
+            <button 
+              onClick={openAcademicDoc} 
+              style={{ 
+                background: 'rgba(255,255,255,0.15)', 
+                border: 'none', 
+                color: '#fff', 
+                padding: '2px 8px', 
+                borderRadius: '4px', 
+                cursor: 'pointer', 
+                fontSize: '0.72rem' 
+              }}>
+              📄 Project Specs & SDG Mapping
+            </button>
+          </div>
+        </div>
+
+        <div className="nav-container">
+          <a href="#home" onClick={() => setActiveTab('home')} className="brand-logo">
+            <div className="logo-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2v8M12 18v4M4.93 10.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 10.93l-1.41 1.41" />
+                <circle cx="12" cy="14" r="4" fill="#FF9D23" stroke="none" />
+              </svg>
+            </div>
+            <div className="brand-text-wrapper">
+              <span className="brand-title">Streetlight Fault Reporting</span>
+              <span className="brand-subtitle">Report. Locate. Resolve. • Belagavi</span>
+            </div>
+          </a>
+
+          <nav>
+            <ul className="nav-links">
+              <li><button className={`nav-btn ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')}>🏠 Home</button></li>
+              <li><button className={`nav-btn ${activeTab === 'report' ? 'active' : ''}`} onClick={() => setActiveTab('report')}>⚠️ Report Fault</button></li>
+              <li><button className={`nav-btn ${activeTab === 'track' ? 'active' : ''}`} onClick={() => setActiveTab('track')}>🔍 Track Complaint</button></li>
+              <li><button className={`nav-btn ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')}>🗺️ Live Map</button></li>
+
+              {currentUser && currentUser.role === 'admin' ? (
+                <>
+                  <li><button className={`nav-btn ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>🛡️ Admin Portal</button></li>
+                  <li><button className={`nav-btn ${activeTab === 'analytics' ? 'active' : ''}`} onClick={() => setActiveTab('analytics')}>📊 Analytics</button></li>
+                </>
+              ) : (
+                <li><button className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>📋 My Complaints</button></li>
+              )}
+
+              <li>
+                {currentUser ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#FDE68A', fontWeight: 600 }}>
+                      {currentUser.role === 'admin' ? '👮 Admin' : `👤 ${currentUser.name.split(' ')[0]}`}
+                    </span>
+                    <button 
+                      onClick={() => {
+                        window.ApiService.logout();
+                        setCurrentUser(null);
+                        setActiveTab('auth');
+                      }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.2)',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        color: '#FCA5A5',
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        fontSize: '0.78rem'
+                      }}>
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <button className="nav-btn admin-pill-btn" onClick={() => setActiveTab('auth')}>🔒 Login / Register</button>
+                )}
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+    );
+
+    // Footer
+    const Footer = ({ setActiveTab, openAcademicDoc }) => (
+      <footer className="civic-footer">
+        <div className="footer-container">
+          <div>
+            <div className="footer-brand">Streetlight Fault Reporting System</div>
+            <p className="footer-text">
+              A digital civic platform designed for citizens of Belagavi, Karnataka to easily report non-working or damaged streetlights with photo evidence and exact GPS locations.
+            </p>
+            <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <span className="sdg-chip">🟢 SDG 11: Sustainable Cities</span>
+              <span className="sdg-chip">🌐 SDG 9: Infrastructure</span>
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ color: 'white', fontSize: '1rem', marginBottom: '12px' }}>Quick Navigation</h4>
+            <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <li><a href="#report" onClick={() => setActiveTab('report')} style={{ color: '#94A3B8', textDecoration: 'none' }}>→ Report a Fault</a></li>
+              <li><a href="#track" onClick={() => setActiveTab('track')} style={{ color: '#94A3B8', textDecoration: 'none' }}>→ Track Complaint Status</a></li>
+              <li><a href="#map" onClick={() => setActiveTab('map')} style={{ color: '#94A3B8', textDecoration: 'none' }}>→ Interactive Map View</a></li>
+              <li><a href="#admin" onClick={() => setActiveTab('admin')} style={{ color: '#94A3B8', textDecoration: 'none' }}>→ Municipal Authority Login</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 style={{ color: 'white', fontSize: '1rem', marginBottom: '12px' }}>Academic Project Context</h4>
+            <p className="footer-text" style={{ fontSize: '0.84rem' }}>
+              Developed as a realistic Academic Engineering Project for college curriculum based in Belagavi, Karnataka.
+            </p>
+            <button 
+              onClick={openAcademicDoc}
+              style={{
+                marginTop: '12px',
+                background: 'linear-gradient(135deg, #FF9D23, #D97706)',
+                color: '#0B192C',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '0.82rem'
+              }}>
+              📄 View Problem Statement & System Specs
+            </button>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <div>© 2026 Belagavi City Corporation • Public Lighting Division. All Rights Reserved.</div>
+          <div style={{ opacity: 0.7 }}>Designed for Academic Engineering Presentation • VTU Belagavi</div>
+        </div>
+      </footer>
+    );
+
+    // HomePage
+    const HomePage = ({ setActiveTab, openAcademicDoc }) => {
+      const [complaints, setComplaints] = React.useState([]);
+
+      React.useEffect(() => {
+        const list = window.ApiService.getComplaints();
+        setComplaints(list.slice(0, 3));
+      }, []);
+
+      return (
+        <div>
+          <div className="academic-banner">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '1.4rem' }}>🎓</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>College Academic Engineering Project • Belagavi, Karnataka</div>
+                <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>Digital Civic Infrastructure Solution for Belagavi City Corporation</div>
+              </div>
+            </div>
+            <button 
+              onClick={openAcademicDoc}
+              style={{ background: 'white', color: '#065F46', border: 'none', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
+              Read Docs & SDG Mapping →
+            </button>
+          </div>
+
+          <div className="hero-card">
+            <div className="hero-glow-bg"></div>
+            <div className="hero-grid">
+              <div>
+                <div className="hero-badge">
+                  <span>💡</span>
+                  <span>BELAGAVI CIVIC TECH PORTAL</span>
+                </div>
+                <h1 className="hero-title">Streetlight Fault Reporting System</h1>
+                <div className="hero-tagline">“Report. Locate. Resolve.”</div>
+                <p className="hero-description">
+                  A digital civic platform enabling citizens of Belagavi to quickly report non-functional or damaged streetlights using photo proof and exact GPS coordinates, empowering municipal authorities to respond faster.
+                </p>
+
+                <div className="hero-actions">
+                  <button className="btn-primary" onClick={() => setActiveTab('report')}><span>📷</span> Report a Fault Now</button>
+                  <button className="btn-secondary" onClick={() => setActiveTab('track')}><span>🔍</span> Track Complaint Status</button>
+                  <button className="btn-secondary" onClick={() => setActiveTab('auth')}><span>🛡️</span> Admin Login</button>
+                </div>
+              </div>
+
+              <div className="hero-illustration-box">
+                <div style={{ textAlign: 'center', color: '#FBBF24', fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>
+                  REAL-TIME INFRASTRUCTURE MONITORING
+                </div>
+                
+                <div className="lamp-graphic-container">
+                  <svg width="220" height="180" viewBox="0 0 200 160" fill="none">
+                    <line x1="10" y1="140" x2="190" y2="140" stroke="#475569" strokeWidth="4" strokeLinecap="round" />
+                    <path d="M60 140 L60 40 Q60 20 85 20 L130 20" stroke="#94A3B8" strokeWidth="6" strokeLinecap="round" />
+                    <rect x="125" y="18" width="22" height="10" rx="3" fill="#334155" stroke="#CBD5E1" strokeWidth="2" />
+                    <polygon points="125,28 80,140 180,140 147,28" fill="url(#lightGlow)" opacity="0.85" />
+                    <circle cx="136" cy="25" r="7" fill="#FF9D23" />
+                    <circle cx="136" cy="25" r="14" fill="#FBBF24" opacity="0.35" />
+                    <rect x="20" y="90" width="25" height="50" fill="#1E293B" />
+                    <rect x="150" y="80" width="30" height="60" fill="#1E293B" />
+                    <rect x="165" y="65" width="15" height="75" fill="#0F172A" />
+                    <g transform="translate(130, 95)">
+                      <path d="M10 0 C4.477 0 0 4.477 0 10 C0 17.5 10 26 10 26 C10 26 20 17.5 20 10 C20 4.477 15.523 0 10 0 Z" fill="#EF4444" />
+                      <circle cx="10" cy="9" r="4" fill="white" />
+                    </g>
+                    <defs>
+                      <linearGradient id="lightGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#FF9D23" stopOpacity="0.7" />
+                        <stop offset="100%" stopColor="#FF9D23" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+
+                <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: '8px' }}>
+                  📍 Belagavi City Corporation Area Coverage
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card" style={{ marginBottom: '36px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div>
+                <h3 style={{ color: '#EF4444', fontSize: '1.1rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>⚠️</span> The Problem in Urban Maintenance
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+                  Dark or flickering streetlights lead to increased road accidents, poor night security, and difficulty for pedestrians. Traditionally, citizens had no structured platform to report exact pole locations or photo evidence, causing long resolution delays.
+                </p>
+              </div>
+              <div>
+                <h3 style={{ color: '#10B981', fontSize: '1.1rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>✅</span> The Proposed Engineering Solution
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+                  A mobile-responsive web portal where citizens click a photo, auto-capture browser GPS coordinates, and submit complaints directly to ward electrical officers. Ward teams receive exact location pins and track complaints until resolved.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="workflow-section">
+            <div className="section-header">
+              <h2 className="section-title">How The System Works</h2>
+              <p className="section-subtitle">Simple 5-step process for fast streetlight fault reporting & resolution</p>
+            </div>
+
+            <div className="steps-grid">
+              <div className="step-card">
+                <span className="step-number">01</span>
+                <div className="step-icon-wrapper">👁️</div>
+                <h4 className="step-card-title">Identify Fault</h4>
+                <p className="step-card-desc">Spot any broken, dim, flickering, or non-functional streetlight in your locality.</p>
+              </div>
+
+              <div className="step-card">
+                <span className="step-number">02</span>
+                <div className="step-icon-wrapper">📸</div>
+                <h4 className="step-card-title">Upload Photograph</h4>
+                <p className="step-card-desc">Take a photo using your mobile camera or pick an image file showing the pole.</p>
+              </div>
+
+              <div className="step-card">
+                <span className="step-number">03</span>
+                <div className="step-icon-wrapper">📍</div>
+                <h4 className="step-card-title">Capture GPS Location</h4>
+                <p className="step-card-desc">Click "Fetch GPS" to auto-record exact latitude/longitude coordinates.</p>
+              </div>
+
+              <div className="step-card">
+                <span className="step-number">04</span>
+                <div className="step-icon-wrapper">🚀</div>
+                <h4 className="step-card-title">Submit Complaint</h4>
+                <p className="step-card-desc">Receive a unique tracking ID (e.g. SL-2026-0001) for real-time updates.</p>
+              </div>
+
+              <div className="step-card">
+                <span className="step-number">05</span>
+                <div className="step-icon-wrapper" style={{ background: '#ECFDF5', color: '#10B981', borderColor: '#A7F3D0' }}>✅</div>
+                <h4 className="step-card-title">Authority Resolves</h4>
+                <p className="step-card-desc">Ward electrical engineers inspect site, repair fixture, and close ticket.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span>📋</span> Recent Sample Public Complaints (Belagavi Area)</div>
+              <button className="btn-outline-dark" style={{ fontSize: '0.85rem', padding: '6px 14px' }} onClick={() => setActiveTab('map')}>
+                View All on Map →
+              </button>
+            </div>
+
+            <div className="table-responsive">
+              <table className="civic-table">
+                <thead>
+                  <tr>
+                    <th>Complaint ID</th>
+                    <th>Photo</th>
+                    <th>Location / Ward</th>
+                    <th>Problem Type</th>
+                    <th>Reported On</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {complaints.map(item => (
+                    <tr key={item.complaint_id}>
+                      <td style={{ fontWeight: 700, color: 'var(--color-civic-navy)' }}>{item.complaint_id}</td>
+                      <td><img src={item.photo_url} alt="fault" className="table-thumb" /></td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{item.address.split(',')[0]}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{item.ward}</div>
+                      </td>
+                      <td>{item.problem_type}</td>
+                      <td style={{ fontSize: '0.85rem' }}>{item.date_reported}</td>
+                      <td><span className={`badge-status badge-${item.status.toLowerCase().replace(/\s+/g, '')}`}>{item.status}</span></td>
+                      <td>
+                        <button 
+                          onClick={() => setActiveTab('track')}
+                          style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border-medium)', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                          Track →
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ReportFaultPage Component
+    const ReportFaultPage = ({ currentUser, onSubmissionSuccess }) => {
+      const [formData, setFormData] = React.useState({
+        citizen_name: currentUser ? currentUser.name : "Rahul Sharma",
+        citizen_contact: currentUser ? currentUser.email : "citizen@belagavi.gov.in",
+        citizen_mobile: currentUser ? currentUser.mobile : "9845123456",
+        streetlight_id: "",
+        photo_url: "assets/faulty_night.png",
+        latitude: 15.8497,
+        longitude: 74.4977,
+        address: "RP Road, Tilakwadi, Belagavi, Karnataka 590006",
+        problem_type: "Streetlight not working",
+        description: "",
+        ward: "Ward 14 - Tilakwadi"
+      });
+
+      const [searchQuery, setSearchQuery] = React.useState("");
+      const [searchLoading, setSearchLoading] = React.useState(false);
+      const [gpsLoading, setGpsLoading] = React.useState(false);
+      const [gpsCaptured, setGpsCaptured] = React.useState(false);
+      const [showCameraModal, setShowCameraModal] = React.useState(false);
+      const [photoPreview, setPhotoPreview] = React.useState("assets/faulty_night.png");
+
+      const videoRef = React.useRef(null);
+      const canvasRef = React.useRef(null);
+      const mapRef = React.useRef(null);
+      const markerRef = React.useRef(null);
+
+      React.useEffect(() => {
+        if (!window.L) return;
+        const mapElement = document.getElementById("report-mini-map");
+        if (!mapElement) return;
+
+        if (!mapRef.current) {
+          const initialLat = formData.latitude;
+          const initialLng = formData.longitude;
+          const map = L.map("report-mini-map").setView([initialLat, initialLng], 15);
+
+          const layersObj = createGoogleMapLayers();
+          layersObj.defaultLayer.addTo(map);
+          L.control.layers(layersObj.baseMaps).addTo(map);
+
+          const customMarkerIcon = L.divIcon({
+            className: 'custom-map-pin',
+            html: `<div style="background:#EF4444; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 0 12px rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:bold;">📍</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          });
+
+          const marker = L.marker([initialLat, initialLng], { icon: customMarkerIcon, draggable: true }).addTo(map);
+
+          marker.on('dragend', function (e) {
+            const latlng = e.target.getLatLng();
+            updateLocationFromCoords(latlng.lat, latlng.lng);
+          });
+
+          map.on('click', function (e) {
+            marker.setLatLng(e.latlng);
+            updateLocationFromCoords(e.latlng.lat, e.latlng.lng);
+          });
+
+          mapRef.current = map;
+          markerRef.current = marker;
+        }
+      }, []);
+
+      const updateLocationFromCoords = (lat, lng) => {
+        setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+        window.ApiService.reverseGeocode(lat, lng, (result) => {
+          setFormData(prev => ({ ...prev, address: result.address }));
+        });
+      };
+
+      const handleGetLocation = () => {
+        setGpsLoading(true);
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+              setGpsLoading(false);
+              setGpsCaptured(true);
+              updateLocationFromCoords(lat, lng);
+
+              if (mapRef.current && markerRef.current) {
+                mapRef.current.setView([lat, lng], 18);
+                markerRef.current.setLatLng([lat, lng]);
+              }
+            },
+            (error) => {
+              setGpsLoading(false);
+              alert("Browser Geolocation access was declined or unavailable. You can click anywhere on the Google Satellite map or type any place in the search bar below to pinpoint location.");
+              updateLocationFromCoords(15.8497, 74.4977);
+            },
+            { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+          );
+        } else {
+          setGpsLoading(false);
+          alert("Geolocation is not supported by your browser.");
+        }
+      };
+
+      const handleSearchPlace = (e) => {
+        e.preventDefault();
+        if (!searchQuery) return;
+        setSearchLoading(true);
+
+        window.ApiService.searchAddress(searchQuery, (result) => {
+          setSearchLoading(false);
+          if (result) {
+            setFormData(prev => ({
+              ...prev,
+              latitude: result.lat,
+              longitude: result.lng,
+              address: `${result.displayName} (${result.lat.toFixed(5)}°N, ${result.lng.toFixed(5)}°E)`
+            }));
+
+            if (mapRef.current && markerRef.current) {
+              mapRef.current.setView([result.lat, result.lng], 17);
+              markerRef.current.setLatLng([result.lat, result.lng]);
+            }
+          } else {
+            alert(`Could not find coordinates for "${searchQuery}". Please click directly on the Google Satellite map to pinpoint location.`);
+          }
+        });
+      };
+
+      const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPhotoPreview(reader.result);
+            setFormData(prev => ({ ...prev, photo_url: reader.result }));
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const startCamera = async () => {
+        setShowCameraModal(true);
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (err) {}
+      };
+
+      const captureCameraPhoto = () => {
+        if (videoRef.current && canvasRef.current) {
+          const context = canvasRef.current.getContext('2d');
+          canvasRef.current.width = videoRef.current.videoWidth || 640;
+          canvasRef.current.height = videoRef.current.videoHeight || 480;
+          context.drawImage(videoRef.current, 0, 0);
+          const dataUrl = canvasRef.current.toDataURL('image/jpeg');
+          setPhotoPreview(dataUrl);
+          setFormData(prev => ({ ...prev, photo_url: dataUrl }));
+          stopCamera();
+        } else {
+          setPhotoPreview("assets/faulty_night.png");
+          setFormData(prev => ({ ...prev, photo_url: "assets/faulty_night.png" }));
+          setShowCameraModal(false);
+        }
+      };
+
+      const stopCamera = () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+          const stream = videoRef.current.srcObject;
+          stream.getTracks().forEach(track => track.stop());
+        }
+        setShowCameraModal(false);
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.citizen_name || !formData.citizen_contact) {
+          alert("Please fill in your name and contact email/mobile.");
+          return;
+        }
+        if (!formData.description) {
+          alert("Please provide a short description of the fault.");
+          return;
+        }
+
+        const newRecord = window.ApiService.createComplaint(formData);
+        onSubmissionSuccess(newRecord);
+      };
+
+      return (
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title"><span>📷</span> Report a Streetlight Fault</div>
+              <span style={{ fontSize: '0.8rem', background: '#FEF3C7', color: '#B45309', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}>
+                Belagavi City Corporation Area
+              </span>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '1rem', color: 'var(--color-civic-dark)', marginBottom: '14px', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
+                  1. Reporter Details
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Citizen Name *</label>
+                    <input type="text" className="form-control" required value={formData.citizen_name} onChange={e => setFormData({ ...formData, citizen_name: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Mobile / Email *</label>
+                    <input type="text" className="form-control" required value={formData.citizen_contact} onChange={e => setFormData({ ...formData, citizen_contact: e.target.value, citizen_mobile: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '1rem', color: 'var(--color-civic-dark)', marginBottom: '14px', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
+                  2. Streetlight Fault Information
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Problem Type *</label>
+                    <select className="form-control" value={formData.problem_type} onChange={e => setFormData({ ...formData, problem_type: e.target.value })}>
+                      <option value="Streetlight not working">Streetlight not working (Dark)</option>
+                      <option value="Light flickering">Light flickering continuously</option>
+                      <option value="Damaged streetlight">Damaged streetlight fixture/glass</option>
+                      <option value="Pole damaged">Pole damaged / bent / dangerous</option>
+                      <option value="Other">Other electrical issue</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Streetlight Pole ID (Optional)</label>
+                    <input type="text" className="form-control" placeholder="e.g. BGM-SL-8042" value={formData.streetlight_id} onChange={e => setFormData({ ...formData, streetlight_id: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Description of Problem *</label>
+                  <textarea className="form-control" rows="3" required placeholder="Describe the issue..." value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}></textarea>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '1rem', color: 'var(--color-civic-dark)', marginBottom: '14px', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
+                  3. Upload Photograph Evidence *
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'center' }}>
+                  <div>
+                    <div className="upload-box" onClick={() => document.getElementById('photo-input').click()}>
+                      <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📸</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Click to Upload Photograph</div>
+                      <input type="file" id="photo-input" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+                    </div>
+                    <div style={{ textAlign: 'center', margin: '10px 0' }}>OR</div>
+                    <button type="button" className="btn-outline-dark" style={{ width: '100%', justifyContent: 'center' }} onClick={startCamera}>🎥 Use Mobile Camera</button>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <img src={photoPreview} alt="Preview" className="preview-image" />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '1rem', color: 'var(--color-civic-dark)', marginBottom: '14px', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
+                  4. Google Satellite Map GPS & Geocoding *
+                </h4>
+                
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                  <button type="button" className="btn-primary" onClick={handleGetLocation} disabled={gpsLoading}>
+                    {gpsLoading ? '📡 Capturing Device GPS...' : '📍 Capture My Current GPS Location'}
+                  </button>
+                  {gpsCaptured && <span style={{ color: '#10B981', fontWeight: 700, fontSize: '0.85rem' }}>✓ Live GPS Verified</span>}
+                </div>
+
+                <div style={{ background: 'var(--bg-card-alt)', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid var(--border-medium)' }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '6px' }}>🔍 Search Any Real Place or Landmark:</div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      placeholder="e.g. Tilakwadi Belagavi, KLE Hospital, VTU Machhe..." 
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSearchPlace(e)}
+                    />
+                    <button type="button" className="btn-secondary" onClick={handleSearchPlace} disabled={searchLoading}>
+                      {searchLoading ? 'Searching...' : 'Find Place'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gps-info-box">
+                  <div style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '6px' }}>
+                      <span className="gps-coords-badge">LAT: {formData.latitude.toFixed(5)}° N</span>
+                      <span className="gps-coords-badge">LONG: {formData.longitude.toFixed(5)}° E</span>
+                    </div>
+                    <label className="form-label" style={{ fontSize: '0.8rem', marginTop: '6px' }}>Resolved Real Street Address</label>
+                    <input type="text" className="form-control" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+                      🛰️ Google Maps Satellite View (Use layer icon top-right to switch Satellite / Hybrid / Streets):
+                    </span>
+                  </div>
+                  <div id="report-mini-map" style={{ height: '320px', borderRadius: '8px', border: '2px solid var(--color-civic-dark)' }}></div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '2px solid var(--border-light)' }}>
+                <button type="submit" className="btn-primary" style={{ padding: '14px 32px', fontSize: '1.05rem' }}>🚀 Submit Fault Complaint</button>
+              </div>
+            </form>
+          </div>
+
+          {showCameraModal && (
+            <div className="modal-overlay">
+              <div className="modal-card" style={{ maxWidth: '500px' }}>
+                <div className="modal-header">
+                  <h3>📷 Mobile Camera Capture</h3>
+                  <button onClick={stopCamera} style={{ border: 'none', background: 'none', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
+                </div>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '8px', background: '#000' }}></video>
+                  <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn-secondary" onClick={stopCamera}>Cancel</button>
+                  <button className="btn-primary" onClick={captureCameraPhoto}>Snap Photo</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // SuccessPage Component
+    const SuccessPage = ({ complaint, setActiveTab, setSelectedComplaintId }) => {
+      if (!complaint) return null;
+      return (
+        <div style={{ maxWidth: '750px', margin: '20px auto' }}>
+          <div className="card" style={{ textAlign: 'center', borderTop: '6px solid #10B981' }}>
+            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: '#ECFDF5', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', margin: '0 auto 16px auto' }}>✓</div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-civic-dark)' }}>Complaint Submitted Successfully!</h2>
+            <div style={{ background: 'linear-gradient(135deg, var(--color-civic-dark), var(--color-civic-navy))', color: 'white', padding: '20px', borderRadius: '12px', margin: '20px 0' }}>
+              <div style={{ fontSize: '0.85rem', color: '#FBBF24' }}>ASSIGNED COMPLAINT ID</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 900 }}>{complaint.complaint_id}</div>
+            </div>
+            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center' }}>
+              <button className="btn-primary" onClick={() => { setSelectedComplaintId(complaint.complaint_id); setActiveTab('track'); }}>🔍 Track This Complaint</button>
+              <button className="btn-secondary" style={{ color: 'var(--color-civic-dark)', background: 'var(--bg-card-alt)' }} onClick={() => setActiveTab('dashboard')}>📋 View My Dashboard</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // TrackComplaintPage Component
+    const TrackComplaintPage = ({ initialId }) => {
+      const [searchId, setSearchId] = React.useState(initialId || "SL-2026-0001");
+      const [complaint, setComplaint] = React.useState(null);
+      const [searched, setSearched] = React.useState(false);
+
+      const STAGES = [
+        { key: "Submitted", label: "Submitted", icon: "📝" },
+        { key: "Under Review", label: "Under Review", icon: "🧐" },
+        { key: "Assigned", label: "Assigned", icon: "👷" },
+        { key: "In Progress", label: "In Progress", icon: "⚙️" },
+        { key: "Resolved", label: "Resolved", icon: "✅" }
+      ];
+
+      React.useEffect(() => {
+        handleSearch(initialId || "SL-2026-0001");
+      }, [initialId]);
+
+      const handleSearch = (idToSearch) => {
+        const query = idToSearch || searchId;
+        if (!query) return;
+        const record = window.ApiService.getComplaintById(query);
+        setComplaint(record);
+        setSearched(true);
+      };
+
+      const getStageIndex = (status) => {
+        if (!status) return 0;
+        const index = STAGES.findIndex(s => s.key.toLowerCase() === status.toLowerCase());
+        return index !== -1 ? index : 0;
+      };
+
+      const currentStageIndex = complaint ? getStageIndex(complaint.status) : 0;
+      const progressPercent = (currentStageIndex / (STAGES.length - 1)) * 100;
+
+      return (
+        <div style={{ maxWidth: '950px', margin: '0 auto' }}>
+          <div className="card" style={{ marginBottom: '24px' }}>
+            <div className="card-title" style={{ marginBottom: '16px' }}><span>🔍</span> Track Streetlight Complaint Status</div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <input type="text" className="form-control" value={searchId} onChange={e => setSearchId(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && handleSearch(searchId)} />
+              <button className="btn-primary" onClick={() => handleSearch(searchId)}>Search Status</button>
+            </div>
+            <div style={{ marginTop: '14px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem' }}>Sample IDs:</span>
+              {["SL-2026-0001", "SL-2026-0002", "SL-2026-0003", "SL-2026-0004"].map(demoId => (
+                <button key={demoId} onClick={() => { setSearchId(demoId); handleSearch(demoId); }} style={{ background: 'var(--bg-card-alt)', border: '1px solid var(--border-medium)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.78rem', cursor: 'pointer' }}>
+                  {demoId}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {searched && complaint && (
+            <div className="card">
+              <div className="card-header">
+                <h3>Ticket ID: {complaint.complaint_id}</h3>
+                <span className={`badge-status badge-${complaint.status.toLowerCase().replace(/\s+/g, '')}`}>{complaint.status}</span>
+              </div>
+
+              <div className="timeline-container">
+                <div className="timeline-line"></div>
+                <div className="timeline-progress" style={{ width: `${progressPercent}%` }}></div>
+                {STAGES.map((stage, idx) => (
+                  <div key={stage.key} className={`timeline-step ${idx < currentStageIndex ? 'completed' : ''} ${idx === currentStageIndex ? 'active' : ''}`}>
+                    <div className="timeline-node">{idx < currentStageIndex ? "✓" : stage.icon}</div>
+                    <div className="timeline-label">{stage.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '24px', background: 'var(--bg-card-alt)', padding: '24px', borderRadius: '12px' }}>
+                <div>
+                  <div style={{ marginBottom: '12px' }}><strong>Problem:</strong> {complaint.problem_type}</div>
+                  <div style={{ marginBottom: '12px' }}><strong>Location:</strong> {complaint.address}</div>
+                  <div style={{ marginBottom: '12px' }}><strong>Officer:</strong> {complaint.assigned_officer || "Pending"}</div>
+                  {complaint.admin_remarks && (
+                    <div style={{ background: '#FFFBEB', padding: '10px', borderRadius: '6px', border: '1px solid #FDE68A', fontSize: '0.85rem' }}>
+                      <strong>Admin Remarks:</strong> {complaint.admin_remarks}
+                    </div>
+                  )}
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <img src={complaint.photo_url} alt="Photo" style={{ width: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover' }} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // CitizenDashboard Component
+    const CitizenDashboard = ({ currentUser, setActiveTab, setSelectedComplaintId }) => {
+      const [complaints, setComplaints] = React.useState([]);
+      React.useEffect(() => {
+        const userList = window.ApiService.getComplaintsByUser(currentUser ? currentUser.email : "citizen@belagavi.gov.in");
+        setComplaints(userList);
+      }, [currentUser]);
+
+      return (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2>Citizen Dashboard</h2>
+            <button className="btn-primary" onClick={() => setActiveTab('report')}>➕ Report New Fault</button>
+          </div>
+
+          <div className="card">
+            <div className="table-responsive">
+              <table className="civic-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Photo</th>
+                    <th>Location</th>
+                    <th>Problem</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {complaints.map(item => (
+                    <tr key={item.complaint_id}>
+                      <td style={{ fontWeight: 700 }}>{item.complaint_id}</td>
+                      <td><img src={item.photo_url} className="table-thumb" alt="Thumb" /></td>
+                      <td>{item.address.split(',')[0]}</td>
+                      <td>{item.problem_type}</td>
+                      <td><span className={`badge-status badge-${item.status.toLowerCase().replace(/\s+/g, '')}`}>{item.status}</span></td>
+                      <td>
+                        <button onClick={() => { setSelectedComplaintId(item.complaint_id); setActiveTab('track'); }} style={{ background: 'var(--color-civic-blue)', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.78rem' }}>
+                          Track
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // AdminDashboard Component with Add Custom Officer Feature
+    const AdminDashboard = ({ setActiveTab, setSelectedComplaintId }) => {
+      const [complaints, setComplaints] = React.useState([]);
+      const [officersList, setOfficersList] = React.useState([]);
+      const [selectedComplaint, setSelectedComplaint] = React.useState(null);
+      const [editStatus, setEditStatus] = React.useState("Submitted");
+      const [editOfficer, setEditOfficer] = React.useState("");
+      const [editRemarks, setEditRemarks] = React.useState("");
+      const [showModal, setShowModal] = React.useState(false);
+
+      // Add New Custom Officer Modal state
+      const [showAddOfficerModal, setShowAddOfficerModal] = React.useState(false);
+      const [newOfficerName, setNewOfficerName] = React.useState("");
+      const [newOfficerWard, setNewOfficerWard] = React.useState("Tilakwadi Ward");
+
+      const loadData = () => {
+        setComplaints(window.ApiService.getComplaints());
+        const off = window.ApiService.getOfficers();
+        setOfficersList(off);
+      };
+
+      React.useEffect(() => { loadData(); }, []);
+
+      const openModal = (item) => {
+        setSelectedComplaint(item);
+        setEditStatus(item.status);
+        const currentOfficers = window.ApiService.getOfficers();
+        setEditOfficer(item.assigned_officer !== "Unassigned" ? item.assigned_officer : currentOfficers[0]);
+        setEditRemarks(item.admin_remarks || "");
+        setShowModal(true);
+      };
+
+      const handleSave = (e) => {
+        e.preventDefault();
+        window.ApiService.updateComplaint(selectedComplaint.complaint_id, {
+          status: editStatus,
+          assigned_officer: editOfficer,
+          admin_remarks: editRemarks
+        });
+        setShowModal(false);
+        loadData();
+      };
+
+      const handleAddOfficerSubmit = (e) => {
+        e.preventDefault();
+        if (!newOfficerName) return;
+        const formatted = `Er. ${newOfficerName.replace(/^Er\.\s*/i, '')} (${newOfficerWard})`;
+        const updated = window.ApiService.addOfficer(formatted);
+        setOfficersList(updated);
+        setEditOfficer(formatted);
+        setNewOfficerName("");
+        setShowAddOfficerModal(false);
+        alert(`Successfully added new real officer: "${formatted}"`);
+      };
+
+      return (
+        <div>
+          <div style={{ background: 'linear-gradient(135deg, #0B192C, #1E3E62)', color: 'white', padding: '24px', borderRadius: '12px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Municipal Admin Portal</h2>
+              <p style={{ color: '#94A3B8' }}>Belagavi City Corporation • Public Lighting Division</p>
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn-secondary" onClick={() => setShowAddOfficerModal(true)} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}>
+                👤 Add Real Officer
+              </button>
+              <button className="btn-primary" onClick={() => setActiveTab('analytics')}>📊 Performance Analytics</button>
+            </div>
+          </div>
+
+          <div className="card">
+            <div style={{ background: '#EFF6FF', padding: '10px 16px', borderRadius: '8px', border: '1px solid #BFDBFE', marginBottom: '16px', fontSize: '0.85rem', color: '#1E40AF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>ℹ️ <strong>Academic Demo Note:</strong> Initial rows and officer titles below are realistic demonstration sample data. You can click <strong>"Add Real Officer"</strong> above to input real ward engineers!</span>
+              <button onClick={() => setShowAddOfficerModal(true)} style={{ background: '#1D4ED8', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 700 }}>+ Add Real Officer</button>
+            </div>
+
+            <div className="table-responsive">
+              <table className="civic-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Photo</th>
+                    <th>Location</th>
+                    <th>Problem</th>
+                    <th>Status</th>
+                    <th>Assigned Officer</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {complaints.map(item => (
+                    <tr key={item.complaint_id}>
+                      <td style={{ fontWeight: 700 }}>{item.complaint_id}</td>
+                      <td><img src={item.photo_url} className="table-thumb" alt="Thumb" /></td>
+                      <td>{item.address.split(',')[0]}</td>
+                      <td>{item.problem_type}</td>
+                      <td><span className={`badge-status badge-${item.status.toLowerCase().replace(/\s+/g, '')}`}>{item.status}</span></td>
+                      <td><span style={{ fontWeight: 600, color: '#D97706', fontSize: '0.85rem' }}>{item.assigned_officer || "Unassigned"}</span></td>
+                      <td>
+                        <button onClick={() => openModal(item)} style={{ background: 'var(--color-civic-dark)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem' }}>
+                          ⚙️ Manage Ticket
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Manage Ticket Modal */}
+          {showModal && selectedComplaint && (
+            <div className="modal-overlay">
+              <div className="modal-card">
+                <div className="modal-header">
+                  <h3>Manage Ticket: {selectedComplaint.complaint_id}</h3>
+                  <button onClick={() => setShowModal(false)} style={{ border: 'none', background: 'none', fontSize: '1.4rem' }}>×</button>
+                </div>
+                <form onSubmit={handleSave}>
+                  <div className="modal-body">
+                    <div className="form-group">
+                      <label className="form-label">Update Status</label>
+                      <select className="form-control" value={editStatus} onChange={e => setEditStatus(e.target.value)}>
+                        <option value="Submitted">Submitted (New)</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label className="form-label" style={{ marginBottom: 0 }}>Assign Field Officer</label>
+                        <button type="button" onClick={() => setShowAddOfficerModal(true)} style={{ background: 'none', border: 'none', color: 'var(--color-civic-blue)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>+ Add New Officer</button>
+                      </div>
+                      <select className="form-control" value={editOfficer} onChange={e => setEditOfficer(e.target.value)}>
+                        {officersList.map(off => (
+                          <option key={off} value={off}>{off}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Inspection Remarks</label>
+                      <textarea className="form-control" rows="3" value={editRemarks} onChange={e => setEditRemarks(e.target.value)}></textarea>
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                    <button type="submit" className="btn-primary">Save Ticket Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Add Real Custom Officer Modal */}
+          {showAddOfficerModal && (
+            <div className="modal-overlay" style={{ zIndex: 2500 }}>
+              <div className="modal-card" style={{ maxWidth: '480px' }}>
+                <div className="modal-header">
+                  <h3>👤 Add Real Field Officer</h3>
+                  <button onClick={() => setShowAddOfficerModal(false)} style={{ border: 'none', background: 'none', fontSize: '1.4rem' }}>×</button>
+                </div>
+                <form onSubmit={handleAddOfficerSubmit}>
+                  <div className="modal-body">
+                    <div className="form-group">
+                      <label className="form-label">Officer Full Name *</label>
+                      <input type="text" className="form-control" placeholder="e.g. Suresh Patil or Praveen Deshmukh" required value={newOfficerName} onChange={e => setNewOfficerName(e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Assigned Belagavi Ward / Division *</label>
+                      <input type="text" className="form-control" placeholder="e.g. Tilakwadi Ward, Camp Division, Shahapur, VTU Machhe..." required value={newOfficerWard} onChange={e => setNewOfficerWard(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn-secondary" onClick={() => setShowAddOfficerModal(false)}>Cancel</button>
+                    <button type="submit" className="btn-primary">Add Officer to Roster</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // MapViewPage Component with Google Satellite Hybrid View & Layer Control
+    const MapViewPage = ({ setSelectedComplaintId, setActiveTab }) => {
+      const [complaints, setComplaints] = React.useState([]);
+      const mapRef = React.useRef(null);
+      const markersLayerRef = React.useRef(null);
+
+      React.useEffect(() => {
+        setComplaints(window.ApiService.getComplaints());
+      }, []);
+
+      React.useEffect(() => {
+        if (!window.L) return;
+        const container = document.getElementById("public-main-map");
+        if (!container) return;
+
+        if (!mapRef.current) {
+          const map = L.map("public-main-map").setView([15.8497, 74.4977], 13);
+          
+          const layersObj = createGoogleMapLayers();
+          layersObj.defaultLayer.addTo(map);
+
+          L.control.layers(layersObj.baseMaps).addTo(map);
+
+          mapRef.current = map;
+          markersLayerRef.current = L.layerGroup().addTo(map);
+        }
+
+        renderMarkers();
+      }, [complaints]);
+
+      const renderMarkers = () => {
+        if (!markersLayerRef.current) return;
+        markersLayerRef.current.clearLayers();
+
+        complaints.forEach(c => {
+          let pinColor = "#EF4444";
+          if (c.status === "In Progress" || c.status === "Under Review" || c.status === "Assigned") pinColor = "#F59E0B";
+          if (c.status === "Resolved") pinColor = "#10B981";
+
+          const customIcon = L.divIcon({
+            className: 'custom-leaflet-marker',
+            html: `<div style="background:${pinColor}; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 0 12px rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:12px;">💡</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          });
+
+          const marker = L.marker([c.latitude, c.longitude], { icon: customIcon });
+          marker.bindPopup(`
+            <div style="font-family:sans-serif; width:210px;">
+              <div style="font-weight:800; color:#0B192C;">${c.complaint_id}</div>
+              <div style="font-size:12px; color:#475569; font-weight:600;">${c.problem_type}</div>
+              <img src="${c.photo_url}" style="width:100%; height:100px; object-fit:cover; border-radius:4px; margin:4px 0;" />
+              <div style="font-size:11px; margin-bottom:4px;">📍 ${c.address.split(',')[0]}</div>
+              <div><span style="font-size:10px; padding:2px 6px; border-radius:10px; background:${pinColor}; color:white; font-weight:bold;">${c.status}</span></div>
+            </div>
+          `);
+          markersLayerRef.current.addLayer(marker);
+        });
+      };
+
+      return (
+        <div>
+          <div className="card" style={{ marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div className="card-title"><span>🗺️</span> Google Satellite Interactive Map (Belagavi City)</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Use top-right layer control icon to switch between Google Satellite Hybrid, Pure Satellite, and Google Streets.
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', fontWeight: 600 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#EF4444' }}></span> New</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#F59E0B' }}></span> In Progress</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#10B981' }}></span> Resolved</span>
+              </div>
+            </div>
+          </div>
+          <div className="map-container-box" id="public-main-map" style={{ height: '540px' }}></div>
+        </div>
+      );
+    };
+
+    // AnalyticsPage Component
+    const AnalyticsPage = () => {
+      const [complaints, setComplaints] = React.useState([]);
+      React.useEffect(() => { setComplaints(window.ApiService.getComplaints()); }, []);
+
+      const total = complaints.length;
+      const resolved = complaints.filter(c => c.status === "Resolved").length;
+
+      return (
+        <div>
+          <div className="card">
+            <h2>Executive Analytics & Infrastructure Metrics</h2>
+            <div className="stats-grid" style={{ marginTop: '20px' }}>
+              <div className="stat-card">
+                <div><div className="stat-value">{total}</div><div className="stat-label">Total Logged Complaints</div></div>
+              </div>
+              <div className="stat-card">
+                <div><div className="stat-value">{((resolved / (total || 1)) * 100).toFixed(1)}%</div><div className="stat-label">Resolution Rate</div></div>
+              </div>
+              <div className="stat-card">
+                <div><div className="stat-value">28.4 hrs</div><div className="stat-label">Avg SLA Resolution</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // AuthPage Component
+    const AuthPage = ({ setCurrentUser, setActiveTab }) => {
+      const [roleMode, setRoleMode] = React.useState("citizen");
+      const [formData, setFormData] = React.useState({ email: "citizen@belagavi.gov.in", password: "123" });
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (roleMode === "admin") {
+          const user = { name: "Belagavi Municipal Admin", email: "admin@belagavi.gov.in", role: "admin" };
+          window.ApiService.setCurrentUser(user);
+          setCurrentUser(user);
+          setActiveTab("admin");
+        } else {
+          const user = { name: "Rahul Sharma", email: formData.email, role: "citizen" };
+          window.ApiService.setCurrentUser(user);
+          setCurrentUser(user);
+          setActiveTab("dashboard");
+        }
+      };
+
+      return (
+        <div style={{ maxWidth: '450px', margin: '40px auto' }}>
+          <div className="card">
+            <div style={{ display: 'flex', background: 'var(--bg-card-alt)', padding: '4px', borderRadius: '8px', marginBottom: '20px' }}>
+              <button onClick={() => setRoleMode("citizen")} style={{ flex: 1, padding: '8px', border: 'none', fontWeight: 700, background: roleMode === "citizen" ? "white" : "transparent" }}>Citizen Portal</button>
+              <button onClick={() => setRoleMode("admin")} style={{ flex: 1, padding: '8px', border: 'none', fontWeight: 700, background: roleMode === "admin" ? "var(--color-civic-dark)" : "transparent", color: roleMode === "admin" ? "white" : "inherit" }}>Municipal Admin</button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input type="email" className="form-control" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input type="password" className="form-control" required value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+              </div>
+              <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>Log In</button>
+            </form>
+          </div>
+        </div>
+      );
+    };
+
+    // AcademicDocModal Component
+    const AcademicDocModal = ({ onClose }) => (
+      <div className="modal-overlay" style={{ zIndex: 3000 }}>
+        <div className="modal-card" style={{ maxWidth: '800px' }}>
+          <div className="modal-header" style={{ background: 'var(--color-civic-dark)', color: 'white' }}>
+            <h3>VTU Belagavi Academic Project Specifications</h3>
+            <button onClick={onClose} style={{ color: 'white', border: 'none', background: 'none', fontSize: '1.4rem' }}>×</button>
+          </div>
+          <div className="modal-body">
+            <h4>Primary Problem Statement</h4>
+            <p>Citizens face difficulty reporting non-working streetlights and authorities lack exact GPS tracking.</p>
+            <h4 style={{ marginTop: '14px' }}>UN SDG Mapping</h4>
+            <p>🟢 <strong>SDG 11:</strong> Sustainable Cities and Communities</p>
+            <p>🌐 <strong>SDG 9:</strong> Industry, Innovation and Infrastructure</p>
+          </div>
+          <div className="modal-footer">
+            <button className="btn-primary" onClick={onClose}>Close Dossier</button>
+          </div>
+        </div>
+      </div>
+    );
+
+    // ==========================================
+    // 4. MAIN APP CONTAINER
+    // ==========================================
+    const App = () => {
+      const [activeTab, setActiveTab] = React.useState("home");
+      const [currentUser, setCurrentUser] = React.useState(null);
+      const [lastSubmittedComplaint, setLastSubmittedComplaint] = React.useState(null);
+      const [selectedComplaintId, setSelectedComplaintId] = React.useState("SL-2026-0001");
+      const [showAcademicDoc, setShowAcademicDoc] = React.useState(false);
+
+      React.useEffect(() => {
+        const user = window.ApiService.getCurrentUser();
+        if (user) setCurrentUser(user);
+      }, []);
+
+      const handleSubmissionSuccess = (newComplaint) => {
+        setLastSubmittedComplaint(newComplaint);
+        setSelectedComplaintId(newComplaint.complaint_id);
+        setActiveTab("success");
+      };
+
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <Navbar activeTab={activeTab} setActiveTab={setActiveTab} currentUser={currentUser} setCurrentUser={setCurrentUser} openAcademicDoc={() => setShowAcademicDoc(true)} />
+          <main className="main-wrapper">
+            {activeTab === "home" && <HomePage setActiveTab={setActiveTab} openAcademicDoc={() => setShowAcademicDoc(true)} />}
+            {activeTab === "report" && <ReportFaultPage currentUser={currentUser} onSubmissionSuccess={handleSubmissionSuccess} />}
+            {activeTab === "success" && <SuccessPage complaint={lastSubmittedComplaint} setActiveTab={setActiveTab} setSelectedComplaintId={setSelectedComplaintId} />}
+            {activeTab === "track" && <TrackComplaintPage initialId={selectedComplaintId} />}
+            {activeTab === "dashboard" && <CitizenDashboard currentUser={currentUser} setActiveTab={setActiveTab} setSelectedComplaintId={setSelectedComplaintId} />}
+            {activeTab === "admin" && <AdminDashboard setActiveTab={setActiveTab} setSelectedComplaintId={setSelectedComplaintId} />}
+            {activeTab === "map" && <MapViewPage setSelectedComplaintId={setSelectedComplaintId} setActiveTab={setActiveTab} />}
+            {activeTab === "analytics" && <AnalyticsPage />}
+            {activeTab === "auth" && <AuthPage setCurrentUser={setCurrentUser} setActiveTab={setActiveTab} />}
+          </main>
+          <Footer setActiveTab={setActiveTab} openAcademicDoc={() => setShowAcademicDoc(true)} />
+          {showAcademicDoc && <AcademicDocModal onClose={() => setShowAcademicDoc(false)} />}
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
